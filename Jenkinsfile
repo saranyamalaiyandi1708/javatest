@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Build') {
         steps {
-            sh 'mvn clean package'
+           echo 'build'
         }
     }
 
@@ -47,12 +47,9 @@ pipeline {
     stage('Prod Approval') {
       steps {
           echo 'Prod Approval'
-               }
-        
+               }    
     }
-
     stage('Deploy to Prod') {
-      when { branch 'master'}
       steps { 
           echo 'Prod'         
         }
