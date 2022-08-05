@@ -1,15 +1,21 @@
 pipeline {
   agent any
+
+  tools {
+    maven 'maven'
+  }
+
   stages {
     stage('Build') {
         steps {
-           echo 'build'
+            sh 'mvn clean package'
         }
     }
 
     stage('Test') {
       steps {
-          echo 'test...'
+          echo "${env.BUILD_NUMBER}"
+          echo "${env.BUILD_URL}"
         }
     }
 
@@ -46,13 +52,45 @@ pipeline {
 
     stage('Prod Approval') {
       steps {
-          echo 'Prod Approval'
-               }    
+        script {
+          if (env.BRANCH_NAME == "master") {
+            input('Proceed for Prod Deployment ?')
+          }
+        }
+      }
     }
+
     stage('Deploy to Prod') {
+      when { branch 'master'}
       steps { 
           echo 'Prod'         
         }
-      } 
-   }
+
+        post {
+          failure {
+            echo 'Sending Notification'
+          }
+        }
+    }
+  }
+
+   post {
+        always {
+            echo 'I have finished'
+        }
+        success {
+            echo 'I succeeded!'
+        }
+        unstable {
+            echo 'I am unstable'
+        }
+        failure {
+             mail to: 'team@example.com',
+             subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+             body: "Something is wrong with ${env.BUILD_NUMBER}"
+        }
+        changed {
+            echo 'Things were different before'
+        }
+    }
 }
